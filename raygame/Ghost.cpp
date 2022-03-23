@@ -33,7 +33,7 @@ void Ghost::update(float deltaTime)
 {
 	Agent::update(deltaTime);
 
-	if (getTransform()->getWorldPosition().x <= 100 && getTransform()->getWorldPosition().y <= 100)
+	if (getTransform()->getWorldPosition().x <= 50 && getTransform()->getWorldPosition().y <= 50)
 		RAYLIB_H::CloseWindow();
 
 	if (m_isInvincible)
