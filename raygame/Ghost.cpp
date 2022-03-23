@@ -9,6 +9,7 @@
 #include "Player.h"
 #include "CircleCollider.h"
 #include "WanderComponent.h"
+#include "Engine.h"
 
 Ghost::Ghost(float x, float y, float maxSpeed, float maxForce, int color, Maze* maze)
 	: Agent(x, y, "Ghost", maxSpeed, maxForce)
@@ -19,8 +20,8 @@ Ghost::Ghost(float x, float y, float maxSpeed, float maxForce, int color, Maze* 
 	m_pathfindComponent = new ChaserPathfindComponent(maze);
 	m_pathfindComponent->setColor(color);
 	addComponent(m_pathfindComponent);
-	addComponent(new SpriteComponent("Images/enemy.png"));
-	m_circleCollider = new CircleCollider(30, this);
+	addComponent(new SpriteComponent("Images/EnemyChaser.png"));
+	m_circleCollider = new CircleCollider(9, this);
 	setCollider(m_circleCollider);
 }
 
@@ -33,8 +34,8 @@ void Ghost::update(float deltaTime)
 {
 	Agent::update(deltaTime);
 
-	if (getTransform()->getWorldPosition().x <= 50 && getTransform()->getWorldPosition().y <= 50)
-		RAYLIB_H::CloseWindow();
+	if (getTransform()->getWorldPosition().x <= 50 && getTransform()->getWorldPosition().y <= 50 && !getIsChaser())
+		Engine::CloseApplication();
 
 	if (m_isInvincible)
 	{
@@ -72,14 +73,20 @@ void Ghost::onCollision(Actor* other)
 		getMoveComponent()->setVelocity({ 0, 0 });
 	}*/
 
+	// If the other is a player and it is a chaser, it slows down and begins to seek the top left corner.
 	if (dynamic_cast<Player*>(other) && getIsChaser() && !m_isInvincible)
 	{
 		m_isInvincible = true;
+		setMaxForce(350);
+		getComponent<SpriteComponent>()->setPath("Images/enemy.png");
 		setIsChaser(false);
 	}
+	// If the other is a player and it is not a chaser, it speeds up and seeks the player.
 	else if (dynamic_cast<Player*>(other) && !getIsChaser() && !m_isInvincible)
 	{
 		m_isInvincible = true;
+		setMaxForce(500);
+		getComponent<SpriteComponent>()->setPath("Images/EnemyChaser.png");
 		setIsChaser(true);
 	}
 		

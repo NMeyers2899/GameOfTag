@@ -21,6 +21,11 @@ public:
 
 	void draw() override;
 
+	/// <summary>
+	/// Sets the path of the texture.
+	/// </summary>
+	void setPath(const char* path);
+
 private:
 	Texture2D* m_texture;
 	int m_width;
