@@ -2,8 +2,9 @@
 #include "Agent.h"
 
 class Maze;
-class ChaserPathfindComponent;
 class CircleCollider;
+class WanderComponent;
+class PathfindComponent;
 
 class Ghost : public Agent
 {
@@ -16,6 +17,7 @@ public:
 	Ghost(float x, float y, float speed, float maxForce, int color, Maze* maze);
 	~Ghost();
 
+	void start() override;
 	virtual void update(float deltaTime) override;
 	virtual void draw() override;
 
@@ -33,7 +35,6 @@ public:
 	void setIsChaser(bool value) { m_isChaser = value; }
 
 private:
-	ChaserPathfindComponent* m_pathfindComponent;
 	Maze* m_maze;
 	bool m_isChaser = true;
 	Actor* m_target = nullptr;
@@ -41,5 +42,7 @@ private:
 	bool m_isInvincible;
 	float m_invincibilityTime = 1.0f;
 	float m_currentTime = 0;
+	WanderComponent* m_wanderComponent;
+	PathfindComponent* m_pathFindComponent;
 };
 

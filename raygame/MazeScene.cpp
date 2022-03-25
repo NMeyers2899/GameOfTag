@@ -3,6 +3,8 @@
 #include "Wall.h"
 #include "Ghost.h"
 #include "Transform2D.h"
+#include "SeekComponent.h"
+#include "StateMachineComponent.h"
 
 Maze::TileKey _ = Maze::TileKey::OPEN;
 Maze::TileKey w = Maze::TileKey::WALL;
@@ -21,27 +23,27 @@ Maze::Maze()
 		{ w, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, g, w, },
 		{ w, _, _, _, w, w, _, _, _, w, w, w, _, _, _, w, w, w, _, _, _, w, w, _, _, _, w, },
 		{ w, _, _, _, w, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, w, _, _, _, w, },
-		{ w, _, w, _, w, _, w, _, _, w, _, _, w, _, w, _, _, w, _, _, w, _, w, _, w, _, w, },
-		{ w, _, w, _, _, _, w, _, _, w, _, _, w, _, w, _, _, w, _, _, w, _, _, _, w, _, w, },
+		{ w, _, w, _, w, _, w, _, _, _, _, _, w, _, w, _, _, _, _, _, w, _, w, _, w, _, w, },
 		{ w, _, w, _, _, _, w, _, _, _, _, _, w, _, w, _, _, _, _, _, w, _, _, _, w, _, w, },
-		{ w, _, w, _, _, _, w, _, w, w, _, _, _, _, _, _, _, w, w, _, w, _, _, _, w, _, w, },
-		{ w, _, w, _, w, _, w, _, w, w, _, _, _, _, _, _, _, w, w, _, w, _, w, _, w, _, w, },
-		{ w, _, _, _, w, _, _, _, w, w, _, _, _, _, _, _, _, w, w, _, _, _, w, _, _, _, w, },
-		{ w, _, _, _, w, _, _, _, w, w, _, _, _, _, _, _, _, w, w, _, _, _, w, _, _, _, w, },
+		{ w, _, w, _, _, _, w, _, _, _, _, _, w, _, w, _, _, _, _, _, w, _, _, _, w, _, w, },
+		{ w, _, w, _, _, _, w, _, _, _, _, _, _, _, _, _, _, _, _, _, w, _, _, _, w, _, w, },
+		{ w, _, w, _, w, _, w, _, _, w, _, _, _, _, _, _, _, w, _, _, w, _, w, _, w, _, w, },
+		{ w, _, _, _, w, _, _, _, _, w, _, _, _, _, _, _, _, w, _, _, _, _, w, _, _, _, w, },
+		{ w, _, _, _, w, _, _, _, _, w, _, _, _, _, _, _, _, w, _, _, _, _, w, _, _, _, w, },
 		{ w, _, _, _, w, _, _, _, _, w, _, w, w, _, w, w, _, w, _, _, _, _, w, _, _, _, w, },
 		{ w, _, w, _, w, _, w, _, _, w, _, w, _, _, _, w, _, w, _, _, w, _, w, _, w, _, w, },
 		{ w, _, w, _, _, _, w, _, _, w, _, w, _, w, _, w, _, w, _, _, w, _, _, _, w, _, w, },
 		{ w, _, w, _, _, _, w, _, _, _, _, _, _, w, _, _, _, _, _, _, w, _, _, _, w, _, w, },
 		{ w, _, w, _, _, _, w, _, _, w, _, w, _, w, _, w, _, w, _, _, w, _, _, _, w, _, w, },
-		{ w, _, w, _, w, _, w, _, w, w, _, w, _, _, _, w, _, w, _, _, w, _, w, _, w, _, w, },
-		{ w, _, _, _, w, _, _, _, w, w, _, w, w, _, w, w, _, w, _, _, _, _, w, _, _, _, w, },
-		{ w, _, _, _, w, _, _, _, w, w, _, _, _, _, _, _, _, w, w, _, _, _, w, _, _, _, w, },
-		{ w, _, _, _, w, _, _, _, w, w, _, _, _, _, _, _, _, w, w, _, _, _, w, _, _, _, w, },
-		{ w, _, _, _, w, _, _, _, w, w, _, _, _, _, _, _, _, w, w, _, _, _, w, _, _, _, w, },
-		{ w, _, w, _, w, _, w, _, w, w, _, _, _, _, _, _, _, w, w, _, w, _, w, _, w, _, w, },
+		{ w, _, w, _, w, _, w, _, _, w, _, w, _, _, _, w, _, w, _, _, w, _, w, _, w, _, w, },
+		{ w, _, _, _, w, _, _, _, _, w, _, w, w, _, w, w, _, w, _, _, _, _, w, _, _, _, w, },
+		{ w, _, _, _, w, _, _, _, _, w, _, _, _, _, _, _, _, w, _, _, _, _, w, _, _, _, w, },
+		{ w, _, _, _, w, _, _, _, _, w, _, _, _, _, _, _, _, w, _, _, _, _, w, _, _, _, w, },
+		{ w, _, _, _, w, _, _, _, _, w, _, _, _, _, _, _, _, w, _, _, _, _, w, _, _, _, w, },
+		{ w, _, w, _, w, _, w, _, _, _, _, _, _, _, _, _, _, _, _, _, w, _, w, _, w, _, w, },
 		{ w, _, w, _, _, _, w, _, _, _, _, _, _, _, _, _, _, _, _, _, w, _, _, _, w, _, w, },
-		{ w, _, w, _, _, _, w, _, _, w, _, _, w, _, w, _, _, w, _, _, w, _, _, _, w, _, w, },
-		{ w, _, w, _, _, _, w, _, _, w, _, _, w, _, w, _, _, w, _, _, w, _, _, _, w, _, w, },
+		{ w, _, w, _, _, _, w, _, _, _, _, _, w, _, w, _, _, _, _, _, w, _, _, _, w, _, w, },
+		{ w, _, w, _, _, _, w, _, _, _, _, _, w, _, w, _, _, _, _, _, w, _, _, _, w, _, w, },
 		{ w, _, w, _, w, _, w, _, _, _, _, _, w, _, w, _, _, _, _, _, w, _, w, _, w, _, w, },
 		{ w, _, _, _, w, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, w, _, _, _, w, },
 		{ w, _, _, _, w, w, _, _, _, w, w, w, _, _, _, w, w, w, _, _, _, w, w, _, _, _, w, },
@@ -68,7 +70,7 @@ Maze::~Maze()
 
 void Maze::draw()
 {
-	/*NodeGraph::drawGraph(m_grid[0][0].node);*/
+	NodeGraph::drawGraph(m_grid[0][0].node);
 	Scene::draw();
 }
 
@@ -112,9 +114,16 @@ Maze::Tile Maze::createTile(int x, int y, TileKey key)
 		break;
 	case TileKey::GHOST:
 		tile.cost = 1.0f;
-		Ghost* ghost = new Ghost(position.x, position.y, 250, 500, 0xFF6666FF, this);
+		Ghost* ghost = new Ghost(position.x, position.y, 250, 250, 0xFF6666FF, this);
 		ghost->setTarget(m_player);
 		tile.actor = ghost;
+		//// Added a seek component to the ghost.
+		//SeekComponent* seekComponent = new SeekComponent();
+		//seekComponent->setSteeringForce(200);
+		//seekComponent->setTarget(m_player);
+		//ghost->addComponent(seekComponent);
+		//// Adds the state machine component to the ghost.
+		//ghost->addComponent<StateMachineComponent>();
 		addActor(tile.actor);
 		break;
 	}

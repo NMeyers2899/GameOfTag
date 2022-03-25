@@ -3,31 +3,41 @@
 #include "Wall.h"
 #include "raylib.h"
 #include "Transform2D.h"
-#include "ChaserPathfindingComponent.h"
+#include "PathfindComponent.h"
 #include "MoveComponent.h"
 #include "SpriteComponent.h"
 #include "Player.h"
 #include "CircleCollider.h"
 #include "WanderComponent.h"
 #include "Engine.h"
+#include "SeekComponent.h"
+#include "StateMachineComponent.h"
 
 Ghost::Ghost(float x, float y, float maxSpeed, float maxForce, int color, Maze* maze)
 	: Agent(x, y, "Ghost", maxSpeed, maxForce)
 {
 	m_maze = maze;
 	getTransform()->setScale({ Maze::TILE_SIZE,Maze::TILE_SIZE });
-
-	m_pathfindComponent = new ChaserPathfindComponent(maze);
-	m_pathfindComponent->setColor(color);
-	addComponent(m_pathfindComponent);
 	addComponent(new SpriteComponent("Images/EnemyChaser.png"));
+	
+	// Adding the wander component to the ghost.
+	m_wanderComponent = new WanderComponent(1500, 200, 0);
+	addComponent(m_wanderComponent);
+	// Adding the pathfinding component to the ghost.
+	m_pathFindComponent = new PathfindComponent(maze);
+	addComponent(m_pathFindComponent);
 	m_circleCollider = new CircleCollider(9, this);
 	setCollider(m_circleCollider);
 }
 
 Ghost::~Ghost()
 {
-	delete m_pathfindComponent;
+	delete m_pathFindComponent;
+}
+
+void Ghost::start()
+{
+	Agent::start();
 }
 
 void Ghost::update(float deltaTime)
@@ -58,8 +68,7 @@ void Ghost::draw()
 
 void Ghost::onCollision(Actor* other)
 {
-	/*if (Wall* wall = dynamic_cast<Wall*>(other)) 
-	{
+	if (Wall* wall = dynamic_cast<Wall*>(other)) {
 		MathLibrary::Vector2 halfTile = { Maze::TILE_SIZE / 2.0f, Maze::TILE_SIZE / 2.0f };
 		MathLibrary::Vector2 position = getTransform()->getWorldPosition();
 		position = position + halfTile;
@@ -68,16 +77,15 @@ void Ghost::onCollision(Actor* other)
 			roundf(position.y / Maze::TILE_SIZE) * Maze::TILE_SIZE
 		};
 		tilePosition = tilePosition - halfTile;
-		getTransform()->setWorldPostion(tilePosition);
-
-		getMoveComponent()->setVelocity({ 0, 0 });
-	}*/
+		//getTransform()->setWorldPostion(getTransform()->getWorldPosition() - getMoveComponent()->getVelocity().getNormalized() * -.05f);
+		applyForce(getCollider()->getCollisionNormal() * -1 * getMoveComponent()->getVelocity().getMagnitude());
+	}
 
 	// If the other is a player and it is a chaser, it slows down and begins to seek the top left corner.
 	if (dynamic_cast<Player*>(other) && getIsChaser() && !m_isInvincible)
 	{
 		m_isInvincible = true;
-		setMaxForce(350);
+		setMaxForce(75);
 		getComponent<SpriteComponent>()->setPath("Images/enemy.png");
 		setIsChaser(false);
 	}
@@ -85,7 +93,7 @@ void Ghost::onCollision(Actor* other)
 	else if (dynamic_cast<Player*>(other) && !getIsChaser() && !m_isInvincible)
 	{
 		m_isInvincible = true;
-		setMaxForce(500);
+		setMaxForce(150);
 		getComponent<SpriteComponent>()->setPath("Images/EnemyChaser.png");
 		setIsChaser(true);
 	}
@@ -95,7 +103,7 @@ void Ghost::onCollision(Actor* other)
 void Ghost::setTarget(Actor* target)
 {
 	m_target = target;
-	m_pathfindComponent->setTarget(target);
+	m_pathFindComponent->setTarget(target);
 }
 
 Actor* Ghost::getTarget()
