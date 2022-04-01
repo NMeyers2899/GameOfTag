@@ -86,7 +86,6 @@ void Ghost::onCollision(Actor* other)
 	{
 		m_isInvincible = true;
 		setMaxForce(75);
-		getComponent<SpriteComponent>()->setPath("Images/enemy.png");
 		setIsChaser(false);
 	}
 	// If the other is a player and it is not a chaser, it speeds up and seeks the player.
@@ -94,7 +93,6 @@ void Ghost::onCollision(Actor* other)
 	{
 		m_isInvincible = true;
 		setMaxForce(150);
-		getComponent<SpriteComponent>()->setPath("Images/EnemyChaser.png");
 		setIsChaser(true);
 	}
 		

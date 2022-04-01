@@ -70,7 +70,7 @@ Maze::~Maze()
 
 void Maze::draw()
 {
-	NodeGraph::drawGraph(m_grid[0][0].node);
+	/*NodeGraph::drawGraph(m_grid[0][0].node);*/
 	Scene::draw();
 }
 
